@@ -5,7 +5,9 @@ const userSchema = new mongoose.Schema(
     role: {
       type: String,
       required: true,
-      enum: ["user", admin],
+      enum: ["user", "admin"],
+        default: "user"
+
     },
     name: {
       type: String,
@@ -55,10 +57,12 @@ const userSchema = new mongoose.Schema(
 );
 
 // Hash Password
-userSchema.pre("save", async (next) => {
-  if (!this.isModified.password) return next();
-  this.password = await bcrypt.hash(this.password);
-  next();
+// Hash Password
+userSchema.pre("save", async function () {
+  if (!this.isModified("password")) return
+
+  this.password = await bcrypt.hash(this.password, 10);
+
 });
 
 // Compare Password 

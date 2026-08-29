@@ -1,5 +1,5 @@
 import { SignJWT } from "jose";
-import { ConnectDb } from "../../../../lib/db.js";
+import  ConnectDb  from "../../../../lib/db.js";
 import { Response } from "../../../../lib/helperFunction.js";
 import { zSchema } from "../../../../lib/zodSchema.js";
 import UserModel from "../../../../models/User.model.js";
@@ -44,7 +44,7 @@ export async function POST(request) {
 
     // Token Create
     const secret = new TextEncoder().encode(process.env.SECRET);
-    const token = await new SignJWT({ userId: newUser._id })
+    const token = await new SignJWT({ userId: newUser._id.toString() })
       .setIssuedAt()
       .setExpirationTime("1h")
       .setProtectedHeader({ alg: "HS256" })
@@ -55,10 +55,19 @@ export async function POST(request) {
       "Email Verification request from Ghulam Hassan",
       email,
       emailVerificationLink(
-        `${process.env.NEXT_PUBLIC_BASE_URI}/verify-email/${token}`,
+        `${process.env.NEXT_PUBLIC_BASE_URI}/auth/verify-email/${token}`,
       ),
     );
 
     return Response(true,201,'Registration Success , Please verify your Email')
-  } catch (error) {}
+  } catch (error) {
+     console.error("REGISTER ERROR:", error);
+
+    return Response(
+      false,
+      500,
+      error.message || "Internal Server Error"
+    );
+  }
 }
+
