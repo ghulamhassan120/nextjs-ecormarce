@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import {Assistant} from 'next/font/google'
+import { ToastContainer } from 'react-toastify';
+
 import "./globals.css";
 
 
@@ -19,7 +21,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="en"
       className={`${assistantFont.className} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        {children}
+        <ToastContainer/>
+        </body>
     </html>
   );
 }

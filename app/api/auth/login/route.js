@@ -1,12 +1,13 @@
 import { SignJWT } from "jose";
 import ConnectDb from "../../../../lib/db";
-import { CatchError, GernateOTP } from "../../../../lib/helperFunction";
+import { CatchError, GernateOTP, response } from "../../../../lib/helperFunction";
 import { zSchema } from "../../../../lib/zodSchema";
 import UserModel from "../../../../models/User.model";
 import { sendMail } from "../../../../lib/sendmail";
 import { emailVerificationLink } from "../../../../email/emailVerificationLink.js";
 import OTPModel from "../../../../models/Otp.model.js";
 import { otpEmail } from "../../../../email/otpEmail.js";
+import z from "zod";
 
 export async function POST(request) {
   try {
@@ -23,7 +24,7 @@ export async function POST(request) {
     const validationData = validationSchema.safeParse(payload);
     // checked Data
     if (!validationData.success) {
-      return Response(
+      return response(
         false,
         401,
         "Invalid missing or input Field",
@@ -33,9 +34,9 @@ export async function POST(request) {
 
     const { email, password } = validationData.data;
     // GET USER DATA
-    const getUser = await UserModel.findOne({ email });
+    const getUser = await UserModel.findOne({ deleteAt:null,email }).select("+password")
     if (!getUser) {
-      return Response(false, 401, "Invalid Login Credentials");
+      return response(false, 401, "Invalid Login Credentials");
     }
 
     if (!getUser.isEmailVerified) {
@@ -61,11 +62,13 @@ export async function POST(request) {
         "Your email is not verified .We have sent a verification link to your registered email address",
       );
     }
-
+console.log("USER:", getUser);
+console.log("PASSWORD FROM DB:", getUser?.password);
+console.log("PASSWORD FROM REQUEST:", password);
     // check Password 
     const isPasswordVerified = await getUser.comparePassword(password);
     if (!isPasswordVerified) {
-      return Response(false, 401, "Invalid Login Credentials");
+      return response(false, 401, "Invalid Login Credentials");
     }
 
     // otp check 
@@ -74,16 +77,17 @@ export async function POST(request) {
     const otp = GernateOTP()
     const newOtpData=new OTPModel({
         email,
-        otp
+        otp,
     })
 
     await newOtpData.save()
 
     const otpEmailStatus=await sendMail('Your Login verification Code',email,otpEmail(otp))
      if (!otpEmailStatus) {
-      return Response(false, 401, "Failed to send OTP");
+      return response(false, 401, "Failed to send OTP");
     }
-      return Response(false, 200, "Please verify your device ");
+
+      return response(true, 201, "Please verify your device ");
 
   } catch (error) {
     return CatchError(error);

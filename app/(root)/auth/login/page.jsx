@@ -26,9 +26,15 @@ import { FaRegEye } from "react-icons/fa6";
 import Link from "next/link";
 import { WEBSITE_REGISTER } from "../../../../Routes/WebsiteRoutes";
 import axios from "axios";
+import { showToast } from "../../../../lib/showToast";
+import OtpValidation from "../../../../components/Application/otpValidation";
 const LoginPage = () => {
   const [loading, setLoading] = useState(false);
-  const [isTypePassword, setIsTypePassword] = useState(true);
+  const [otpVerificationLoading, setOtpVerificationLoading] = useState(false);
+  const [isTypePassword, setIsTypePassword] = useState();
+  const [otpEmail, setOtpEmail] = useState("")  
+console.log(otpEmail);
+
   const formSchema = zSchema
     .pick({
       email: true,
@@ -44,21 +50,45 @@ const LoginPage = () => {
     },
   });
 
-  const HandleLoginSubmit = async (value) => {
+  const HandleLoginSubmit = async (values) => {
+    console.log(values);
+    
  try {
         setLoading(true)
-        const {data:registerResponse}=await axios.post(`/api/auth/login`,value)
+        const {data:registerResponse}=await axios.post(`/api/auth/login`,values)
+        console.log(registerResponse);
+        
         if (!registerResponse?.success) {
           throw new Error(registerResponse.message)
         }
+        setOtpEmail(values?.email)
         form.reset()
-        alert(registerResponse?.message)
+        showToast('success',registerResponse.message)
       } catch (error) {
-        alert(error.message)
+        showToast('error',error.message)
       }finally{
         setLoading(false)
       }
   };
+
+    const handleOtpVerification = async (values) => {
+           try {
+        setOtpVerificationLoading(true)
+        const {data:registerResponse}=await axios.post(`/api/auth/verify-otp`,values)
+        console.log(registerResponse);
+        
+        if (!registerResponse?.success) {
+          throw new Error(registerResponse.message)
+        }
+        setOtpEmail('')
+        showToast('success',registerResponse.message)
+      } catch (error) {
+        showToast('error',error.message)
+      }finally{
+        setOtpVerificationLoading(false)
+      }
+
+    };
   return (
     <Card className="w-[400px]">
       <CardContent>
@@ -71,7 +101,9 @@ const LoginPage = () => {
             className="max-w-[150px]"
           />
         </div>
-        <div className="text-center">
+        {!otpEmail
+          ?
+          <>    <div className="text-center">
           <h1 className="text-3xl font-bold">Login Into Account</h1>
           <p> Login into your account by filling out the form below</p>
         </div>
@@ -133,7 +165,13 @@ const LoginPage = () => {
                   <Link href="" className="text-primary underline">Forget Password</Link>
             </div>
           </div>
-        </form>
+        </form></>
+          :
+          <>
+          <OtpValidation email={otpEmail} loading={otpVerificationLoading} onSubmit={handleOtpVerification}/>
+           </>
+        }
+    
       </CardContent>
     </Card>
   );

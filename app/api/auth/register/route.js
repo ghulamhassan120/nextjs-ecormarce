@@ -1,6 +1,6 @@
 import { SignJWT } from "jose";
 import  ConnectDb  from "../../../../lib/db.js";
-import { Response } from "../../../../lib/helperFunction.js";
+import { response } from "../../../../lib/helperFunction.js";
 import { zSchema } from "../../../../lib/zodSchema.js";
 import UserModel from "../../../../models/User.model.js";
 import { sendMail } from "../../../../lib/sendmail.js";
@@ -19,7 +19,7 @@ export async function POST(request) {
     const validationData = validationSchema.safeParse(payload);
     // checked Data
     if (!validationData.success) {
-      return Response(
+      return response(
         false,
         401,
         "Invalid missing or input Field",
@@ -31,7 +31,7 @@ export async function POST(request) {
     // check User
     const checkUser = await UserModel.exists({ email });
     if (checkUser) {
-      return Response(true, 409, "User Already Exists");
+      return response(true, 409, "User Already Exists");
     }
     // new user add db
     const newUser = new UserModel({
@@ -59,11 +59,11 @@ export async function POST(request) {
       ),
     );
 
-    return Response(true,201,'Registration Success , Please verify your Email')
+    return response(true,201,'Registration Success , Please verify your Email')
   } catch (error) {
      console.error("REGISTER ERROR:", error);
 
-    return Response(
+    return response(
       false,
       500,
       error.message || "Internal Server Error"

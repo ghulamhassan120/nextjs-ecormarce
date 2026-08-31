@@ -1,6 +1,6 @@
 import { jwtVerify } from "jose";
 import ConnectDb from "../../../../lib/db";
-import { CatchError, Response } from "../../../../lib/helperFunction";
+import { CatchError, response } from "../../../../lib/helperFunction";
 import UserModel from "../../../../models/User.model";
 
 export async function POST(request) {
@@ -9,7 +9,7 @@ export async function POST(request) {
     const { token } = await request.json();
 
     if (!token) {
-      return Response(false, 400, "Missing token");
+      return response(false, 400, "Missing token");
     }
     // Verify Token 
     const secret = new TextEncoder().encode(process.env.SECRET);
@@ -20,14 +20,14 @@ export async function POST(request) {
 
     const user =await UserModel.findById(userId)
     if (!user) {
-        return Response(false,404,"User Not Found")
+        return response(false,404,"User Not Found")
     }
 
     user.isEmailVerified=true
     await user.save()
 
 
-    return Response(true,200,'Email verifiation success')
+    return response(true,200,'Email verifiation success')
   } catch (error) {
     return CatchError(error)
   }
