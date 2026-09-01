@@ -28,13 +28,14 @@ import { WEBSITE_REGISTER } from "../../../../Routes/WebsiteRoutes";
 import axios from "axios";
 import { showToast } from "../../../../lib/showToast";
 import OtpValidation from "../../../../components/Application/otpValidation";
+import { useDispatch } from "react-redux";
+import {login} from '../../../../store/reducer/authReducer'
 const LoginPage = () => {
   const [loading, setLoading] = useState(false);
   const [otpVerificationLoading, setOtpVerificationLoading] = useState(false);
   const [isTypePassword, setIsTypePassword] = useState();
   const [otpEmail, setOtpEmail] = useState("")  
-console.log(otpEmail);
-
+  const dispatch=useDispatch()
   const formSchema = zSchema
     .pick({
       email: true,
@@ -55,15 +56,15 @@ console.log(otpEmail);
     
  try {
         setLoading(true)
-        const {data:registerResponse}=await axios.post(`/api/auth/login`,values)
-        console.log(registerResponse);
+        const {data:loginResponse}=await axios.post(`/api/auth/login`,values)
+        console.log(loginResponse);
         
-        if (!registerResponse?.success) {
-          throw new Error(registerResponse.message)
+        if (!loginResponse?.success) {
+          throw new Error(loginResponse.message)
         }
         setOtpEmail(values?.email)
         form.reset()
-        showToast('success',registerResponse.message)
+        showToast('success',loginResponse.message)
       } catch (error) {
         showToast('error',error.message)
       }finally{
@@ -74,14 +75,15 @@ console.log(otpEmail);
     const handleOtpVerification = async (values) => {
            try {
         setOtpVerificationLoading(true)
-        const {data:registerResponse}=await axios.post(`/api/auth/verify-otp`,values)
-        console.log(registerResponse);
+        const {data:otpResponse}=await axios.post(`/api/auth/verify-otp`,values)
+        console.log(otpResponse);
         
-        if (!registerResponse?.success) {
-          throw new Error(registerResponse.message)
+        if (!otpResponse?.success) {
+          throw new Error(otpResponse.message)
         }
         setOtpEmail('')
-        showToast('success',registerResponse.message)
+        showToast('success',otpResponse.message)
+        dispatch(login(otpResponse.data))
       } catch (error) {
         showToast('error',error.message)
       }finally{

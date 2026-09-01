@@ -47,7 +47,7 @@ export async function POST(request) {
     .setProtectedHeader({alg:'HS256'})
     .sign(secret)
 
-    const cookieStore=cookies()
+    const cookieStore=await cookies()
     cookieStore.set({
         name:"access-token",
         value:token,
@@ -58,7 +58,7 @@ export async function POST(request) {
     })
 
     await getOtpData.deleteOne()
-            return response(true,200,'Login Successfully')
+            return response(true,200,'Login Successfully',loggedInUserData)
 
   } catch (error) {
     return CatchError(error)

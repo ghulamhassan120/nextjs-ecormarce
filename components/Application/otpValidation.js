@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { zSchema } from "../../lib/zodSchema";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -21,7 +21,10 @@ import {
   InputOTPSlot,
 } from "@/components/ui/input-otp";
 import { REGEXP_ONLY_DIGITS } from "input-otp";
+import { showToast } from "../../lib/showToast";
+import axios from "axios";
 const OtpValidation = ({ email, onSubmit, loading }) => {
+  const [otpResending, setotpResending] = useState(false)
   const formSchema = zSchema.pick({
     otp: true,
     email: true,
@@ -38,6 +41,24 @@ const OtpValidation = ({ email, onSubmit, loading }) => {
   const handleOtpVerification = async (values) => {
     onSubmit(values);
   };
+  const resendOtp = async () => {
+   try {
+        setotpResending(true)
+        const {data:resendResponse}=await axios.post(`/api/auth/resend-otp`,{email})
+        console.log(resendResponse);
+        
+        if (!resendResponse?.success) {
+          throw new Error(resendResponse.message)
+        }
+        showToast('success',resendResponse.message)
+      } catch (error) {
+        showToast('error',error.message)
+      }finally{
+        setotpResending(false)
+      }
+  };
+
+
   return (
     <div>
       <form onSubmit={form.handleSubmit(handleOtpVerification)}>
@@ -98,14 +119,20 @@ const OtpValidation = ({ email, onSubmit, loading }) => {
             loading={loading}
             className={"w-full cursor-pointer"}
           />
-          <div className="text-center mt-5 ">
+        {
+          !otpResending?<div className="text-center mt-5 ">
             <button
               type="button"
               className="cursor-pointer text-blue-500 hover:underline"
+              onClick={resendOtp}
       >
               Resend OTP
             </button>
           </div>
+          :
+          <span className="text-md">Resending....</span>
+        }
+          
         </div>
       </form>
     </div>
